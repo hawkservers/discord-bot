@@ -16,9 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import '@babel/polyfill';
 import {Client} from 'discord.js'
 import {config} from 'dotenv';
 import Logging from './utils/Logging';
+import CommandSystem from "./CommandSystem";
 
 config();
 
@@ -28,9 +30,23 @@ logger.info('Starting Hawk Discord bot');
 
 bot.on('ready', () => {
   logger = Logging.getLogger(bot.user.username);
-  logger.debug('Started')
+  logger.debug('Logged in.');
+
+  logger.info('Loading commands');
+  bot.CommandSystem = new CommandSystem(bot);
+  bot.CommandSystem.loadCommands();
 });
 
+bot.on('message', (message) => {
+  if (message.author.bot || !message.content.startsWith(process.env.BOT_PREFIX))
+    return;
+
+  let args = message.content.slice(process.env.BOT_PREFIX.length).trim().split(/ +/g);
+  const command = args[0].toLowerCase();
+  args.splice(0, 1);
+
+  bot.CommandSystem.runCommand(command, message, args);
+});
 
 bot.login(process.env.BOT_TOKEN).catch(e => {
   Logging.getLogger('Error').error('Could not start bot.', e);
