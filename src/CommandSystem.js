@@ -56,7 +56,7 @@ export default class CommandSystem {
   runCommand(command, message, args = []) {
     this.logger.trace('Running Command', command);
     if (!this.commands.has(command)) {
-      if (process.env.COMMAND_NOT_FOUND) {
+      if (process.env.COMMAND_NOT_FOUND === 'true') {
         message.reply(`Sorry but the command \`${command}\` does not exist.`);
       }
 
